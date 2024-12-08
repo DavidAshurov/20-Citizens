@@ -28,11 +28,17 @@ public class CitizensImpl implements Citizens{
 
     public CitizensImpl(List<Person> citizens) {
         this.idList = new ArrayList<>(citizens);
-        this.lastNameList = new ArrayList<>(citizens);
-        this.ageList = new ArrayList<>(citizens);
         Collections.sort(this.idList);
+        for (int i = 0; i < this.idList.size() - 1; i++) {
+            if (this.idList.get(i).getId() == this.idList.get(i + 1).getId()) {
+                this.idList.remove(i);
+            }
+        }
+        this.lastNameList = new ArrayList<>(this.idList);
+        this.ageList = new ArrayList<>(this.idList);
         Collections.sort(this.lastNameList,lastNameComparator);
         Collections.sort(this.ageList,ageComparator);
+        size = this.idList.size();
     }
 
     @Override
