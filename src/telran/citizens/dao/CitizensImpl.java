@@ -3,13 +3,12 @@ package telran.citizens.dao;
 import telran.citizens.model.Person;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class CitizensImpl implements Citizens{
-    private List<Person> idList;
-    private List<Person> lastNameList;
-    private List<Person> ageList;
+    private TreeSet<Person> idSet;
+    private TreeSet<Person> lastNameSet;
+    private TreeSet<Person> ageSet;
     private int size;
     private static final Comparator<Person> ageComparator = (p1, p2) -> {
         int res = Integer.compare(p1.getAge(),p2.getAge());
@@ -21,101 +20,90 @@ public class CitizensImpl implements Citizens{
     };
 
     public CitizensImpl() {
-        this.idList = new ArrayList<>();
-        this.lastNameList = new ArrayList<>();
-        this.ageList = new ArrayList<>();
+        this.idSet = new TreeSet<>();
+        this.lastNameSet = new TreeSet<>(lastNameComparator);
+        this.ageSet = new TreeSet<>(ageComparator);
     }
 
     public CitizensImpl(List<Person> citizens) {
-        this.idList = new ArrayList<>(citizens);
-        Collections.sort(this.idList);
-        for (int i = 0; i < this.idList.size() - 1; i++) {
-            if (this.idList.get(i).getId() == this.idList.get(i + 1).getId()) {
-                this.idList.remove(i);
-            }
-        }
-        this.lastNameList = new ArrayList<>(this.idList);
-        this.ageList = new ArrayList<>(this.idList);
-        Collections.sort(this.lastNameList,lastNameComparator);
-        Collections.sort(this.ageList,ageComparator);
-        size = this.idList.size();
+        this.idSet = new TreeSet<>(citizens);
+        this.lastNameSet = new TreeSet<>(lastNameComparator);
+        this.ageSet = new TreeSet<>(ageComparator);
+        this.lastNameSet.addAll(citizens);
+        this.ageSet.addAll(citizens);
+        size = this.idSet.size();
     }
 
+    //O(n) -> O(log(n))
     @Override
     public boolean add(Person person) {
         if (person == null || find(person.getId()) != null) {
             return false;
         }
-        int index = Collections.binarySearch(idList,person);
-        index = -index - 1;
-        idList.add(index,person);
-        index = Collections.binarySearch(lastNameList,person,lastNameComparator);
-        index = -index - 1;
-        lastNameList.add(index,person);
-        index = Collections.binarySearch(ageList,person,ageComparator);
-        index = -index - 1;
-        ageList.add(index,person);
+        idSet.add(person);
+        lastNameSet.add(person);
+        ageSet.add(person);
         size++;
         return true;
     }
 
+    //O(n) -> O(log(n))
     @Override
     public boolean remove(int id) {
         Person removed = find(id);
         if (removed == null) {
             return false;
         }
-        idList.remove(removed);
-        lastNameList.remove(removed);
-        ageList.remove(removed);
+        idSet.remove(removed);
+        lastNameSet.remove(removed);
+        ageSet.remove(removed);
         size--;
         return true;
     }
 
+    //O(log(n))
     @Override
     public Person find(int id) {
         Person pattern = new Person(id,null,null,null);
-        int index = Collections.binarySearch(idList,pattern);
-        return index >= 0 ? idList.get(index) : null;
+        Person res = idSet.floor(pattern);
+        return (res != null && res.getId() == id) ? res : null;
     }
 
+    //O(log(n))
     @Override
     public Iterable<Person> find(int minAge, int maxAge) {
-        Person pattern = new Person(Integer.MIN_VALUE,null,null, LocalDate.now().minusYears(minAge));
-        int minIndex = Collections.binarySearch(ageList,pattern,ageComparator);
-        minIndex = -minIndex - 1;
-        pattern = new Person(Integer.MAX_VALUE,null,null, LocalDate.now().minusYears(maxAge));
-        int maxIndex = Collections.binarySearch(ageList,pattern,ageComparator);
-        maxIndex = -maxIndex - 1;
-        return new ArrayList<>(ageList.subList(minIndex,maxIndex));
+        Person leftPattern = new Person(Integer.MIN_VALUE,null,null, LocalDate.now().minusYears(minAge));
+        Person rightPattern = new Person(Integer.MAX_VALUE,null,null, LocalDate.now().minusYears(maxAge));
+        return new TreeSet<>(ageSet.subSet(leftPattern,true,rightPattern,true));
     }
 
+    //O(log(n))
     @Override
     public Iterable<Person> find(String lastName) {
-        Person pattern = new Person(Integer.MIN_VALUE,null,lastName, null);
-        int minIndex = Collections.binarySearch(lastNameList,pattern,lastNameComparator);
-        minIndex = -minIndex - 1;
-        pattern = new Person(Integer.MAX_VALUE,null,lastName, null);
-        int maxIndex = Collections.binarySearch(lastNameList,pattern,lastNameComparator);
-        maxIndex = -maxIndex - 1;
-        return new ArrayList<>(lastNameList.subList(minIndex,maxIndex));
+        Person leftPattern = new Person(Integer.MIN_VALUE,null,lastName, null);
+        Person rightPattern = new Person(Integer.MAX_VALUE,null,lastName, null);
+        return new TreeSet<>(lastNameSet.subSet(leftPattern,true,rightPattern,true));
     }
 
+    //O(1)
     @Override
     public Iterable<Person> getAllPersonsSortedById() {
-        return new ArrayList<>(idList);
+        return new TreeSet<>(idSet);
     }
 
+    //O(1)
     @Override
     public Iterable<Person> getAllPersonsSortedByAge() {
-        return new ArrayList<>(ageList);
+        return new TreeSet<>(ageSet);
     }
 
+    //O(1)
     @Override
     public Iterable<Person> getAllPersonsSortedByLastName() {
-        return new ArrayList<>(lastNameList);
+        return new TreeSet<>(lastNameSet);
     }
 
+    //O(1)
     @Override
     public int size() {
         return size;

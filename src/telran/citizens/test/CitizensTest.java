@@ -32,13 +32,13 @@ class CitizensTest {
         persons[4] = new Person(5,"Ilan","Bondar", LocalDate.of(2000,11,11));
         persons[5] = new Person(1,"David","Ashurov", LocalDate.of(2000,10,6));
         persons[6] = new Person(4,"Ivan","Gershanikov", LocalDate.of(2004,9,27));
-//        //Default constructor
-//        citizens = new CitizensImpl();
-//        for (int i = 0; i < 5; i++) {
-//            citizens.add(persons[i]);
-//        }
+        //Default constructor
+        citizens = new CitizensImpl();
+        for (int i = 0; i < 5; i++) {
+            citizens.add(persons[i]);
+        }
         //Copy constructor
-        citizens = new CitizensImpl(Arrays.asList(persons));
+        //citizens = new CitizensImpl(Arrays.asList(persons));
     }
 
     @Test
